@@ -39,3 +39,19 @@ func TestCaptcha(t *testing.T) {
 	checkCaptcha(t, "1234", 0)
 	checkCaptcha(t, "91212129", 9)
 }
+
+func checkCaptchaHalfway(t *testing.T, s string, expected int) {
+	actual := captchaHalfway(stringToNumbers(s))
+
+	if expected != actual {
+		t.Errorf("Wrong halfway captcha for '%s'.  actual: %d, expected: %d", s, actual, expected)
+	}
+}
+
+func TestCaptchaHalfway(t *testing.T) {
+	checkCaptchaHalfway(t, "1212", 6)
+	checkCaptchaHalfway(t, "1221", 0)
+	checkCaptchaHalfway(t, "12345", 0)
+	checkCaptchaHalfway(t, "123123", 12)
+	checkCaptchaHalfway(t, "12131415", 4)
+}
