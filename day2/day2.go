@@ -6,7 +6,7 @@ import (
 )
 
 // Returns the difference between the largest and smallest value in the row
-func rowChecksum(row []int) (int) {
+func minMaxRowChecksum(row []int) (int) {
 	max := 0
 	min := math.MaxInt64
 
@@ -23,10 +23,28 @@ func rowChecksum(row []int) (int) {
 	return max - min
 }
 
-func checksum(spreadsheet [][]int) (int) {
+// Returns the result of dividing the two numbers in the row that divide evenly
+func divisionRowChecksum(row []int) (int) {
+	for i, v := range row {
+		for _, q := range row[i+1:] {
+			if v % q == 0 {
+				return v / q
+			}
+
+			if q % v == 0 {
+				return q / v
+			}
+		}
+	}
+
+	return 0
+}
+
+// Returns the checksum calculated with the given checksum function on the spreadsheet.
+func checksum(rowChecksumFn func([]int) int, spreadsheet [][]int) (int) {
 	sum := 0
 	for _, row := range spreadsheet {
-		sum += rowChecksum(row)
+		sum += rowChecksumFn(row)
 	}
 
 	return sum
@@ -52,5 +70,6 @@ func main() {
 		{1158, 2832, 697, 113, 121, 397, 1508, 118, 2181, 2122, 809, 2917, 134, 2824, 3154, 2791},
 	}
 
-	fmt.Printf("Part 1: %d\n", checksum(input))
+	fmt.Printf("Part 1: %d\n", checksum(minMaxRowChecksum, input))
+	fmt.Printf("Part 2: %d\n", checksum(divisionRowChecksum, input))
 }
