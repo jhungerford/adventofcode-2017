@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"fmt"
+	"sort"
 )
 
 // Returns whether the given passphrase is valid, i.e. whether it contains no duplicate words.
@@ -21,6 +22,55 @@ func PasspharaseIsValid(passphrase string) bool {
 	}
 
 	return true
+}
+
+func AnagramPassphraseIsValid(passphrase string) bool {
+	words := strings.Split(passphrase, " ")
+	wordsMap := make(map[string]bool)
+
+	for _, word := range words {
+		sorted := SortString(word)
+		_, exists := wordsMap[sorted]
+
+		if exists {
+			return false
+		}
+
+		wordsMap[sorted] = true
+	}
+
+	return true
+}
+
+type sortRunes []rune
+
+func (s sortRunes) Less(i, j int) bool {
+	return s[i] < s[j]
+}
+
+func (s sortRunes) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s sortRunes) Len() int {
+	return len(s)
+}
+
+func SortString(s string) string {
+	r := []rune(s)
+	sort.Sort(sortRunes(r))
+	return string(r)
+}
+
+func CountValid(passphrases []string, checkPassphrase func(string)bool) (int) {
+	numValid := 0
+	for _, passphrase := range passphrases {
+		if checkPassphrase(passphrase) {
+			numValid ++
+		}
+	}
+
+	return numValid
 }
 
 func main() {
@@ -539,12 +589,6 @@ func main() {
 		"xzvfbf fopmfxu mvftgr mfupoxf coyhof talcc vpkslo",
 	}
 
-	numValid := 0
-	for _, passphrase := range input {
-		if PasspharaseIsValid(passphrase) {
-			numValid ++
-		}
-	}
-
-	fmt.Printf("Part 1: %d\n", numValid)
+	fmt.Printf("Part 1: %d\n", CountValid(input, PasspharaseIsValid))
+	fmt.Printf("Part 2: %d\n", CountValid(input, AnagramPassphraseIsValid))
 }
