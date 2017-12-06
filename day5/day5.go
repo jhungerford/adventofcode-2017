@@ -11,7 +11,12 @@ type cpuState struct {
 
 func (state cpuState) advance() cpuState {
 	oldJump := (*state.offsets)[state.offsetPointer]
-	(*state.offsets)[state.offsetPointer] ++
+
+	if oldJump >= 3 {
+		(*state.offsets)[state.offsetPointer] --
+	} else {
+		(*state.offsets)[state.offsetPointer] ++
+	}
 
 	return cpuState {
 		offsetPointer: state.offsetPointer + oldJump,
