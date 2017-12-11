@@ -63,9 +63,19 @@ func runBalanceTests(t *testing.T, tests []balanceTestPair) {
 func TestCycles(t *testing.T) {
 	input := []int{0, 2, 7, 0}
 	expected := 5
-	result := cycles(input)
+	result := len(cycles(input))
 
-	if result != 5 {
+	if result != expected {
 		t.Errorf("Wrong number of cycles for %v.  Expected %d, got %d", input, expected, result)
+	}
+}
+
+func TestCycleLength(t *testing.T) {
+	input := []int{0, 2, 7, 0}
+	expected := 4
+	result := cycleLength(cycles(input))
+
+	if result != expected {
+		t.Errorf("Wrong cycle length for %v.  Expected %d, got %d", input, expected, result)
 	}
 }

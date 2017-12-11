@@ -35,14 +35,14 @@ func balance(memory []int) []int {
 }
 
 // Returns whether the memory configuration has been seen before
-func contains(memory []int, seen [][]int) bool {
-	for _, v := range seen {
+func seenIndex(memory []int, seen [][]int) int {
+	for i, v := range seen {
 		if arrayEquals(memory, v) {
-			return true
+			return i
 		}
 	}
 
-	return false
+	return -1
 }
 
 // Returns whether the two arrays have the same length and values
@@ -62,20 +62,29 @@ func arrayEquals(a []int, b []int) bool {
 
 // Counts the number of cycles that must be completed before a balance configuration is produced
 // that has been seen before.
-func cycles(memory []int) int {
+func cycles(memory []int) [][]int {
 	seen := [][]int{memory}
 
 	i := 1
-	for memory := balance(memory); !contains(memory, seen); memory = balance(memory) {
+	for memory := balance(memory); seenIndex(memory, seen) == -1; memory = balance(memory) {
 		seen = append(seen, memory)
 		i ++
 	}
 
-	return i
+	return seen
+}
+
+// Returns the cycle length formed by balancing the largest memory cell
+func cycleLength(seen [][]int) int {
+	repeat := balance(seen[len(seen) - 1])
+
+	return len(seen) - seenIndex(repeat, seen)
 }
 
 func main() {
 	input := []int{10, 3, 15, 10, 5, 15, 5, 15, 9, 2, 5, 8, 5, 2, 3, 6}
 
-	fmt.Println("Part 1: ", cycles(input))
+	seen := cycles(input)
+	fmt.Println("Part 1: ", len(seen))
+	fmt.Println("Part 2: ", cycleLength(seen))
 }
