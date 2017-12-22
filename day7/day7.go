@@ -87,8 +87,6 @@ func readLines(fileName string) ([]string, error) {
 		row := strings.TrimSpace(s.Text())
 		if row != "" {
 			l.PushBack(row)
-		} else {
-			fmt.Print("Blank row")
 		}
 	}
 
