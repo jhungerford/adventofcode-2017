@@ -77,17 +77,24 @@ func parseInstruction(line string) Instruction {
 
 type CPU struct {
 	registers map[string]int
+	maxValue int
 }
 
 // Creates a new CPU with all registers set to 0
 func NewCPU() *CPU {
-	return &CPU{make(map[string]int)}
+	return &CPU{make(map[string]int), 0}
 }
 
 // Applies the instruction, potentially modifying the values of the CPU registers
 func applyInstruction(instruction Instruction, cpu *CPU) {
 	if instruction.conditionOperator(cpu.registers[instruction.conditionRegister], instruction.conditionValue) {
-		cpu.registers[instruction.register] += instruction.direction * instruction.amount
+		newValue := cpu.registers[instruction.register] + instruction.direction * instruction.amount
+
+		cpu.registers[instruction.register] = newValue
+
+		if newValue > cpu.maxValue {
+			cpu.maxValue = newValue
+		}
 	}
 }
 
@@ -151,5 +158,6 @@ func main() {
 		applyInstruction(parseInstruction(line), cpu)
 	}
 
-	fmt.Print("Part 1: ", largestRegisterValue(cpu))
+	fmt.Println("Part 1:", largestRegisterValue(cpu))
+	fmt.Println("Part 2:", cpu.maxValue)
 }
