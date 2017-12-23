@@ -54,21 +54,21 @@ func parsedRowsEqual(a ParsedRow, b ParsedRow) bool {
 }
 
 func TestBuildTree(t *testing.T) {
-	expected := Node{"tknk", 41, nil, []*Node{
-		{"ugml", 68, nil, []*Node{
-			{"gyxo", 61, nil, []*Node{}},
-			{"ebii", 61, nil, []*Node{}},
-			{"jptl", 61, nil, []*Node{}},
+	expected := Node{"tknk", 41, 778, nil, []*Node{
+		{"ugml", 68, 251, nil, []*Node{
+			{"gyxo", 61, 61, nil, []*Node{}},
+			{"ebii", 61, 61, nil, []*Node{}},
+			{"jptl", 61, 61, nil, []*Node{}},
 		}},
-		{"padx", 45, nil, []*Node{
-			{"pbga", 66, nil, []*Node{}},
-			{"havc", 66, nil, []*Node{}},
-			{"qoyq", 66, nil, []*Node{}},
+		{"padx", 45, 243, nil, []*Node{
+			{"pbga", 66, 66, nil, []*Node{}},
+			{"havc", 66, 66, nil, []*Node{}},
+			{"qoyq", 66, 66, nil, []*Node{}},
 			}},
-		{"fwft", 72, nil, []*Node{
-			{"ktlj", 57, nil, []*Node{}},
-			{"cntj", 57, nil, []*Node{}},
-			{"xhth", 57, nil, []*Node{}},
+		{"fwft", 72, 243, nil, []*Node{
+			{"ktlj", 57, 57, nil, []*Node{}},
+			{"cntj", 57, 57, nil, []*Node{}},
+			{"xhth", 57, 57, nil, []*Node{}},
 			}},
 	}}
 
@@ -95,8 +95,39 @@ func TestBuildTree(t *testing.T) {
 	}
 }
 
+func TestFindCorrectWeight(t *testing.T) {
+	lines := []string {
+		"pbga (66)",
+		"xhth (57)",
+		"ebii (61)",
+		"havc (66)",
+		"ktlj (57)",
+		"fwft (72) -> ktlj, cntj, xhth",
+		"qoyq (66)",
+		"padx (45) -> pbga, havc, qoyq",
+		"tknk (41) -> ugml, padx, fwft",
+		"jptl (61)",
+		"ugml (68) -> gyxo, ebii, jptl",
+		"gyxo (61)",
+		"cntj (57)",
+	}
+
+	parsedRows := make([]ParsedRow, len(lines))
+	for i, row := range lines {
+		parsedRows[i] = parseRow(row)
+	}
+
+	tree := buildTree(parsedRows)
+
+	actual := findCorrectWeight(tree)
+
+	if actual != 60 {
+		t.Error("Wrong result for findCorrectWeight.  Expected 60, Actual ", actual)
+	}
+}
+
 func treeEqual(expected *Node, actual *Node) bool {
-	if expected.name != actual.name || expected.weight != actual.weight {
+	if expected.name != actual.name || expected.weight != actual.weight || expected.childWeight != actual.childWeight {
 		return false
 	}
 
