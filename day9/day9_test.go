@@ -2,13 +2,13 @@ package main
 
 import "testing"
 
-type ScoreTestCase struct {
+type TestCase struct {
 	input string
 	expected int
 }
 
 func TestScore(t *testing.T) {
-	testCases := []ScoreTestCase {
+	testCases := []TestCase{
 		{"{}", 1},
 		{"{{{}}}", 6},
 		{"{{},{}}", 5},
@@ -21,8 +21,27 @@ func TestScore(t *testing.T) {
 
 	for _, testCase := range testCases {
 		actual := score(testCase.input)
-		if testCase.expected != actual {
-			t.Error("Wrong value for", testCase.input, "Expected:", testCase.expected, "Actual:", actual)
+		if testCase.expected != actual.score {
+			t.Error("Wrong score for", testCase.input, "Expected:", testCase.expected, "Actual:", actual.score)
+		}
+	}
+}
+
+func TestGarbageCount(t *testing.T) {
+	testCases := []TestCase {
+		{"<>", 0},
+		{"<random characters>", 17},
+		{"<<<<>", 3},
+		{"<{!>}>", 2},
+		{"<!!>", 0},
+		{"<!!!>>", 0},
+		{"<{o\"i!a,<{i<a>", 10},
+	}
+
+	for _, testCase := range testCases {
+		actual := score(testCase.input)
+		if testCase.expected != actual.garbageCount {
+			t.Error("Wrong garbage count for", testCase.input, "Expected:", testCase.expected, "Actual:", actual.garbageCount)
 		}
 	}
 }

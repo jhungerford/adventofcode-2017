@@ -9,6 +9,7 @@ import (
 
 type State struct {
 	score int
+	garbageCount int
 	level int
 	escaped bool
 }
@@ -53,18 +54,19 @@ func GarbageHandler(r rune, state *State) Handler {
 		return GroupHandler
 	}
 
+	state.garbageCount ++
 	return GarbageHandler
 }
 
-func score(input string) int {
-	state := &State{0, 0, false}
+func score(input string) *State {
+	state := &State{0, 0, 0, false}
 	handler := GroupHandler
 
 	for _, r := range input {
 		handler = handler(r, state)
 	}
 
-	return state.score
+	return state
 }
 
 func main() {
@@ -79,7 +81,8 @@ func main() {
 		return
 	}
 
-	input := strings.TrimSpace(string(bytes))
+	score := score(strings.TrimSpace(string(bytes)))
 
-	fmt.Println("Part 1: ", score(string(input)))
+	fmt.Println("Part 1:", score.score)
+	fmt.Println("Part 2:", score.garbageCount)
 }
