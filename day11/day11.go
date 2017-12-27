@@ -14,14 +14,21 @@ type HexCoordinate struct {
 	x, y, z int
 }
 
-func movePath(path string) int {
+// Follows the given comma-separated list of directions and returns the current and furthest distance from the start.
+func movePath(path string) (int, int) {
 	coord := HexCoordinate{0, 0, 0}
 
+	max := 0
 	for _, direction := range strings.Split(path, ",") {
 		coord = move(coord, direction)
+
+		dist := distance(coord)
+		if dist > max {
+			max = dist
+		}
 	}
 
-	return distance(coord)
+	return distance(coord), max
 }
 
 func move(coord HexCoordinate, direction string) HexCoordinate {
@@ -79,6 +86,7 @@ func main() {
 
 	input := strings.TrimSpace(string(bytes))
 
-	fmt.Println("Part 1:", movePath(input))
-
+	current, max := movePath(input)
+	fmt.Println("Part 1:", current)
+	fmt.Println("Part 2:", max)
 }

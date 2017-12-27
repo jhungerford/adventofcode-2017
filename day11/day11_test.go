@@ -16,7 +16,7 @@ func TestPart1Examples(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		actual := movePath(testCase.input)
+		actual, _ := movePath(testCase.input)
 
 		if testCase.expected != actual {
 			t.Error("Wrong distance for path", testCase.input, "Expected", testCase.expected, "Actual", actual)
