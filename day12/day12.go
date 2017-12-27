@@ -76,6 +76,36 @@ func spanningTreeSize(graph *Graph, node int) int {
 	return len(visited)
 }
 
+func numTrees(graph *Graph) int {
+	visitedNodes := make([]bool, len(graph.adjacent))
+	numTrees := 0
+
+	for i, visited := range visitedNodes {
+		if visited {
+			continue
+		}
+
+		numTrees ++
+		toVisit := list.New()
+		toVisit.PushBack(i)
+		visitedNodes[i] = true
+
+		for toVisit.Len() > 0 {
+			current := toVisit.Front()
+			toVisit.Remove(current)
+
+			for _, neighbor := range graph.adjacent[current.Value.(int)] {
+				if !visitedNodes[neighbor] {
+					toVisit.PushBack(neighbor)
+					visitedNodes[neighbor] = true
+				}
+			}
+		}
+	}
+
+	return numTrees
+}
+
 // Reads newline separated lines from the file with the given name
 func readLines(fileName string) ([]string, error) {
 	f, err := os.Open(fileName)
@@ -125,5 +155,5 @@ func main() {
 	}
 
 	fmt.Println("Part 1:", spanningTreeSize(graph, 0))
-
+	fmt.Println("Part 2:", numTrees(graph))
 }

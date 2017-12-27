@@ -38,17 +38,21 @@ func TestParse(t *testing.T) {
 
 func TestSpanningTreeSize(t *testing.T) {
 	if spanningTreeSize(exampleGraph, 0) != 6 {
-
+		t.Error("Wrong spanning tree size for node 0.  Expected: 6 Actual:", spanningTreeSize(exampleGraph, 0))
 	}
 
 	if spanningTreeSize(exampleGraph, 1) != 1 {
-		t.Error("Wrong spanning tree size for node 1")
+		t.Error("Wrong spanning tree size for node 1.  Expected: 1 Actual:", spanningTreeSize(exampleGraph, 1))
 	}
 }
 
-func checkSpanningTreeSize(graph *Graph, node int) {
-
+func TestNumTrees(t *testing.T) {
+	numTrees := numTrees(exampleGraph)
+	if numTrees != 2 {
+		t.Error("Wrong number of trees.  Expected: 2 Actual:", numTrees)
+	}
 }
+
 
 func graphsMatch(a, b *Graph) bool {
 	if len(a.adjacent) != len(b.adjacent) {
