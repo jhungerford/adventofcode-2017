@@ -2,14 +2,14 @@ package main
 
 import "testing"
 
-type TestCase struct {
-	input Yarn
-	length int
-	expected Yarn
-}
-
 func TestKnot(t *testing.T) {
-	testCases := []TestCase{
+	type KnotTestCase struct {
+		input Yarn
+		length int
+		expected Yarn
+	}
+
+	testCases := []KnotTestCase{
 		{
 			Yarn{[]int{0, 1, 2, 3, 4}, 0, 0},
 			3,
@@ -41,13 +41,48 @@ func TestKnot(t *testing.T) {
 	}
 }
 
+func TestEncodeInput(t *testing.T) {
+	input := "1,2,3"
+	expected := []int{49, 44, 50, 44, 51, 17, 31, 73, 47, 23}
+	actual := encodeInput(input)
+
+	if !arraysMatch(expected, actual) {
+		t.Error("Wrong value for encodeInput(", input, ").  Expected: ", expected, "Actual: ", actual)
+	}
+}
+
+func TestHash(t *testing.T) {
+	type TestCase struct {
+		input string
+		expected string
+	}
+
+	testCases := []TestCase {
+		{"", "a2582a3a0e66e6e86e3812dcb672a272"},
+			{"AoC 2017", "33efeb34ea91902bb2f59c9920caa6cd"},
+			{"1,2,3", "3efbe78a8d82f29979031a4aa0b16a9d"},
+			{"1,2,4", "63960835bcdc130f0b66d7ff4f6a5a8e"},
+	}
+
+	for _, testCase := range testCases {
+		actual := hash(testCase.input)
+		if actual != testCase.expected {
+			t.Error("Wrong value for hash", testCase.input, "Expected", testCase.expected, "Actual", actual)
+		}
+	}
+}
+
 func yarnMatches(a, b Yarn) bool {
-	if a.current != b.current || a.skipSize != b.skipSize || len(a.elements) != len(b.elements) {
+	return a.current == b.current && a.skipSize == b.skipSize && arraysMatch(a.elements, b.elements)
+}
+
+func arraysMatch(a, b []int) bool {
+	if len(a) != len(b) {
 		return false
 	}
 
-	for i, v := range a.elements {
-		if v != b.elements[i] {
+	for i, v := range a {
+		if v != b[i] {
 			return false
 		}
 	}

@@ -44,7 +44,73 @@ func knot(yarn Yarn, length int) Yarn {
 	return yarn
 }
 
+func stringToNumbers(input string) ([]int, error) {
+	stringNumbers := strings.Split(input, ",")
+	numbers := make([]int, len(stringNumbers))
+
+	var err error
+	for i, stringNumber := range stringNumbers {
+		numbers[i], err = strconv.Atoi(stringNumber)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return numbers, nil
+}
+
+var MagicNumbers = []int{17, 31, 73, 47, 23}
+
+// Encodes input into a yarn by converting each digit to ascii and appending magic numbers at the end
+func encodeInput(input string) []int {
+	encoded := make([]int, len(input) + 5)
+
+	// Ascii representation of each character of the input
+	for i, value := range input {
+		encoded[i] = int(value)
+	}
+
+	// Followed by magic numbers
+	for i, value := range MagicNumbers {
+		encoded[i + len(input)] = value
+	}
+
+	return encoded
+}
+
+func hash(input string) string {
+	lengths := encodeInput(input)
+	yarn := NewYarn(256)
+
+	for i := 0; i < 64; i ++ {
+		for _, length := range lengths {
+			yarn = knot(yarn, length)
+		}
+	}
+
+	denseHash := make([]int, 16)
+	for block := 0; block < 16; block ++ {
+		condensed := 0
+
+		for i := 0; i < 16; i ++ {
+			condensed ^= yarn.elements[block * 16 + i]
+		}
+
+		denseHash[block] = condensed
+	}
+
+	output := ""
+	for _, value := range denseHash {
+		output += fmt.Sprintf("%02x", value)
+	}
+
+	return output
+}
+
 func main() {
+	hash("1,2,3")
+
 	if len(os.Args) != 2 {
 		fmt.Println("Usage: ", os.Args[0], " <input file>")
 		return
@@ -56,16 +122,19 @@ func main() {
 		return
 	}
 
-	yarn := NewYarn(256)
-	for _, lengthStr := range strings.Split(strings.TrimSpace(string(bytes)), ",") {
-		length, err := strconv.Atoi(lengthStr)
-		if err != nil {
-			fmt.Println("Invalid length", lengthStr)
-			return
-		}
+	input := strings.TrimSpace(string(bytes))
 
-		yarn = knot(yarn, length)
+	lengths, lengthsErr := stringToNumbers(input)
+	if lengthsErr != nil {
+		fmt.Println("Error converting input to numbers", err)
+		return
 	}
 
-	fmt.Println("Part 1:", yarn.elements[0] * yarn.elements[1])
+	part1Yarn := NewYarn(256)
+	for _, length := range lengths {
+		part1Yarn = knot(part1Yarn, length)
+	}
+
+	fmt.Println("Part 1:", part1Yarn.elements[0] * part1Yarn.elements[1])
+	fmt.Println("Part 2:", hash(input))
 }
