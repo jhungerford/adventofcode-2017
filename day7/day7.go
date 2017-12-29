@@ -6,8 +6,7 @@ import (
 	"strings"
 	"fmt"
 	"os"
-	"bufio"
-	"container/list"
+	"../util"
 )
 
 type ParsedRow struct {
@@ -85,36 +84,6 @@ func setChildWeight(node *Node) {
 	node.childWeight = sum + node.weight
 }
 
-// Reads newline separated lines from the file with the given name
-func readLines(fileName string) ([]string, error) {
-	f, err := os.Open(fileName)
-	if err != nil {
-		return nil, err
-	}
-
-	defer f.Close()
-
-	s := bufio.NewScanner(f)
-	l := list.New()
-
-	for s.Scan() {
-		row := strings.TrimSpace(s.Text())
-		if row != "" {
-			l.PushBack(row)
-		}
-	}
-
-	lines := make([]string, l.Len())
-
-	i := 0
-	for e := l.Front(); e != nil; e = e.Next() {
-		lines[i] = e.Value.(string)
-		i ++
-	}
-
-	return lines, nil
-}
-
 // All of a node's children must have the same weight for the tree to be balanced.
 // Finds the node that causes the tree to be unbalanced, and returns what it's weight should be.
 func findCorrectWeight(node *Node) int {
@@ -146,7 +115,7 @@ func main() {
 		return
 	}
 
-	lines, err := readLines(os.Args[1])
+	lines, err := util.ReadLines(os.Args[1])
 	if err != nil {
 		fmt.Print("Error reading", os.Args[1], err)
 		return

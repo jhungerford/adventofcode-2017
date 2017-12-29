@@ -5,9 +5,8 @@ import (
 	"strings"
 	"errors"
 	"os"
-	"bufio"
-	"container/list"
 	"fmt"
+	"../util"
 )
 
 type Firewall struct {
@@ -108,43 +107,13 @@ func TripSeverity(firewall *Firewall) int {
 	return severity
 }
 
-// Reads newline separated lines from the file with the given name
-func readLines(fileName string) ([]string, error) {
-	f, err := os.Open(fileName)
-	if err != nil {
-		return nil, err
-	}
-
-	defer f.Close()
-
-	s := bufio.NewScanner(f)
-	l := list.New()
-
-	for s.Scan() {
-		row := strings.TrimSpace(s.Text())
-		if row != "" {
-			l.PushBack(row)
-		}
-	}
-
-	lines := make([]string, l.Len())
-
-	i := 0
-	for e := l.Front(); e != nil; e = e.Next() {
-		lines[i] = e.Value.(string)
-		i ++
-	}
-
-	return lines, nil
-}
-
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("Usage: ", os.Args[0], " <input file>")
 		return
 	}
 
-	lines, err := readLines(os.Args[1])
+	lines, err := util.ReadLines(os.Args[1])
 	if err != nil {
 		fmt.Println("Error reading", os.Args[1], err)
 		return

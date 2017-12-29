@@ -1,4 +1,4 @@
-package main
+package knothash
 
 import "testing"
 
@@ -30,7 +30,7 @@ func TestKnot(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		actual := knot(testCase.input, testCase.length)
+		actual := Knot(testCase.input, testCase.length)
 		if !yarnMatches(testCase.expected, actual) {
 			t.Error(
 				"Wrong value for yarn ", testCase.input,
@@ -59,13 +59,13 @@ func TestHash(t *testing.T) {
 
 	testCases := []TestCase {
 		{"", "a2582a3a0e66e6e86e3812dcb672a272"},
-			{"AoC 2017", "33efeb34ea91902bb2f59c9920caa6cd"},
-			{"1,2,3", "3efbe78a8d82f29979031a4aa0b16a9d"},
-			{"1,2,4", "63960835bcdc130f0b66d7ff4f6a5a8e"},
+		{"AoC 2017", "33efeb34ea91902bb2f59c9920caa6cd"},
+		{"1,2,3", "3efbe78a8d82f29979031a4aa0b16a9d"},
+		{"1,2,4", "63960835bcdc130f0b66d7ff4f6a5a8e"},
 	}
 
 	for _, testCase := range testCases {
-		actual := hash(testCase.input)
+		actual := Hash(testCase.input).String()
 		if actual != testCase.expected {
 			t.Error("Wrong value for hash", testCase.input, "Expected", testCase.expected, "Actual", actual)
 		}
@@ -89,3 +89,4 @@ func arraysMatch(a, b []int) bool {
 
 	return true
 }
+
