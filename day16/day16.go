@@ -58,20 +58,17 @@ func (p *Positions) String() string {
 	return string(arr)
 }
 
+// Runs the list of moves on these positions, modifying the positions in the process
+func (p *Positions) RunMoves(moves []Move) {
+	for _, move := range moves {
+		move.Move(p)
+	}
+}
+
 // Returns the given position, spun by the amount on the Positions
 func spinPosition(p *Positions, i int) int {
 	return (len(p.dancers) + i - p.rotation) % len(p.dancers)
 }
-
-// Returns the index of the given dancer
-//func (p *Positions) positionIndex(dancer byte) int {
-//
-//}
-
-// Returns the index of the dancer at the given position
-//func (p *Positions) dancerIndex(position int) int {
-//
-//}
 
 func dancerIndex(dancer byte) int {
 	return int(dancer - 'a')
@@ -183,20 +180,23 @@ func main() {
 	}
 
 	positions := NewPositions(16)
-	for _, move := range moves {
-		move.Move(positions)
-	}
+	initPosition := positions.String()
+
+	positions.RunMoves(moves)
 
 	fmt.Println("Part 1:", positions.String())
 
-	for i := 1; i < 1000000000; i ++ {
-		for _, move := range moves {
-			move.Move(positions)
-		}
+	// Run iterations until the positions wrap back around to the initial state.
+	cycle := 1
+	for positions.String() != initPosition {
+		positions.RunMoves(moves)
+		cycle ++
+	}
 
-		if i % 100000 == 0 {
-			fmt.Println("Progress:", i)
-		}
+	fmt.Println("Cycle in", cycle, "moves.  Positions:", positions.String())
+
+	for i := 0; i < (1000000000 % cycle); i ++ {
+		positions.RunMoves(moves)
 	}
 
 	fmt.Println("Part 2:", positions.String())
