@@ -15,7 +15,7 @@ func TestExample(t *testing.T) {
 	}
 
 	expected := "baedc"
-	actual := string(*positions)
+	actual := positions.String()
 
 	if expected != actual {
 		t.Error("Wrong value for dance", moves, "Expected:", expected, "Actual:", actual)
@@ -29,7 +29,7 @@ func TestSpinMove(t *testing.T) {
 	move.Move(positions)
 
 	expected := "eabcd"
-	actual := string(*positions)
+	actual := positions.String()
 
 	if expected != actual {
 		t.Error("Wrong value for spin move.  Expected", expected, "Actual:", actual)
@@ -38,12 +38,12 @@ func TestSpinMove(t *testing.T) {
 
 func TestExchangeMove(t *testing.T) {
 	move := ExchangeMove{3, 4}
-	positions := Positions([]byte{'e', 'a', 'b', 'c', 'd'})
+	positions := NewPositions(5).Set([]byte{'e', 'a', 'b', 'c', 'd'})
 
-	move.Move(&positions)
+	move.Move(positions)
 
 	expected := "eabdc"
-	actual := string(positions)
+	actual := positions.String()
 
 	if expected != actual {
 		t.Error("Wrong value for exchange move.  Expected", expected, "Actual:", actual)
@@ -52,12 +52,12 @@ func TestExchangeMove(t *testing.T) {
 
 func TestPartnerMove(t *testing.T) {
 	move := PartnerMove{'e', 'b'}
-	positions := Positions([]byte{'e', 'a', 'b', 'd', 'c'})
+	positions := NewPositions(5).Set([]byte{'e', 'a', 'b', 'd', 'c'})
 
-	move.Move(&positions)
+	move.Move(positions)
 
 	expected := "baedc"
-	actual := string(positions)
+	actual := positions.String()
 
 	if expected != actual {
 		t.Error("Wrong value for partner move.  Expected", expected, "Actual:", actual)
