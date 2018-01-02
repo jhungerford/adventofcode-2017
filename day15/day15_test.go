@@ -27,7 +27,7 @@ func TestAdvance(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		generator := &Generator{testCase.initValue, testCase.factor}
+		generator := &Generator{testCase.initValue, testCase.factor, 1}
 
 		for i, expected := range testCase.expectedValues {
 			actual := generator.NextValue()
@@ -54,7 +54,7 @@ func TestJudge(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		a, b := &Generator{testCase.aValue, AFactor}, &Generator{testCase.bValue, BFactor}
+		a, b := &Generator{testCase.aValue, AFactor, 1}, &Generator{testCase.bValue, BFactor, 1}
 		actual := Judge(a, b)
 
 		if actual != testCase.expected {
