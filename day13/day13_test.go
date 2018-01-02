@@ -49,6 +49,7 @@ func TestAdvancePacket(t *testing.T) {
 func TestAdvanceScanners(t *testing.T) {
 	expected := newExample()
 	expected.scannerPositions = []int{1, 1, 0, 0, 1, 0, 1}
+	expected.scannerDirections = []int{1, -1, 0, 0, 1, 0, 1}
 
 	actual := newExample()
 	actual.AdvanceScanners()
@@ -58,6 +59,7 @@ func TestAdvanceScanners(t *testing.T) {
 	}
 
 	expected.scannerPositions = []int{2, 0, 0, 0, 2, 0, 2}
+	expected.scannerDirections = []int{-1, 1, 0, 0, 1, 0, 1}
 	actual.AdvanceScanners()
 
 	if !firewallsMatch(expected, actual) {
@@ -128,7 +130,8 @@ func TestTripSeverity(t *testing.T) {
 func firewallsMatch(a, b *Firewall) bool {
 	return a.packetPosition == b.packetPosition &&
 		arraysMatch(a.depths, b.depths) &&
-			arraysMatch(a.scannerPositions, b.scannerPositions)
+		arraysMatch(a.scannerPositions, b.scannerPositions) &&
+		arraysMatch(a.scannerDirections, b.scannerDirections)
 }
 
 func arraysMatch(a, b []int) bool {

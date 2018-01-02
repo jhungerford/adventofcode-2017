@@ -57,7 +57,7 @@ func Parse(lines []string) (*Firewall, error) {
 
 	for position, depth := range m {
 		firewall.depths[position] = depth
-		if firewall.depths[position] <= 1 {
+		if firewall.depths[position] > 0 {
 			firewall.scannerDirections[position] = 1
 		}
 	}
@@ -96,12 +96,88 @@ func (f *Firewall) Severity() int {
 	return 0
 }
 
+func (f *Firewall) String() string {
+	str := ""
+
+	maxDepth := 0
+	for i, depth := range f.depths {
+		str += fmt.Sprintf("%2d  ", i)
+		if depth > maxDepth {
+			maxDepth = depth
+		}
+	}
+
+	str += "\n"
+
+	// Directions
+	for _, direction := range f.scannerDirections {
+		if direction == 0 {
+			str += "    "
+		} else {
+			str += fmt.Sprintf("%2d  ", direction)
+		}
+	}
+
+	str += "\n"
+
+	// Packet and empty layers have a different formatting on the first row
+	for i, depth := range f.depths {
+		var row []byte
+
+		if depth == 0 {
+			row = []byte("... ")
+		} else if f.scannerPositions[i] == 0 {
+			row = []byte("[S] ")
+		} else {
+			row = []byte("[ ] ")
+		}
+
+		// Packet position is indicated by parenthesis - overwrites layer brackets or ellipsis
+		if f.packetPosition == i {
+			row[0] = '('
+			row[2] = ')'
+		}
+
+		str += string(row)
+	}
+
+	str += "\n"
+
+	// Remaining layers
+	for d := 1; d < maxDepth; d ++ {
+		for i, depth := range f.depths {
+			if d >= depth {
+				str += "    "
+			} else if f.scannerPositions[i] == d {
+				str += "[S] "
+			} else {
+				str += "[ ] "
+			}
+		}
+
+		str += "\n"
+	}
+
+	return str
+}
+
 func TripSeverity(firewall *Firewall) int {
 	severity := 0
-	for firewall.packetPosition < len(firewall.depths) - 1 {
+
+	fmt.Println("Initial State:")
+	fmt.Println(firewall.String())
+
+	for i := 0; firewall.packetPosition < len(firewall.depths) - 1; i ++ {
+		fmt.Println("Picosecond", i)
+
 		firewall.AdvancePacket()
+		fmt.Println(firewall.String())
+
 		severity += firewall.Severity()
+		fmt.Println("  Severity", firewall.Severity())
+
 		firewall.AdvanceScanners()
+		fmt.Println(firewall.String())
 	}
 
 	return severity
