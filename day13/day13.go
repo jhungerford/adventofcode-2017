@@ -164,23 +164,56 @@ func (f *Firewall) String() string {
 func TripSeverity(firewall *Firewall) int {
 	severity := 0
 
-	fmt.Println("Initial State:")
-	fmt.Println(firewall.String())
+	//fmt.Println("Initial State:")
+	//fmt.Println(firewall.String())
 
 	for i := 0; firewall.packetPosition < len(firewall.depths) - 1; i ++ {
-		fmt.Println("Picosecond", i)
+		//fmt.Println("Picosecond", i)
 
 		firewall.AdvancePacket()
-		fmt.Println(firewall.String())
+		//fmt.Println(firewall.String())
 
 		severity += firewall.Severity()
-		fmt.Println("  Severity", firewall.Severity())
+		//fmt.Println("  Severity", firewall.Severity())
 
 		firewall.AdvanceScanners()
-		fmt.Println(firewall.String())
+		//fmt.Println(firewall.String())
 	}
 
 	return severity
+}
+
+func MinDelay(firewall *Firewall) int {
+	// l: layer, d: delay
+	// It takes s=2*(depth-1) steps for each layer to return to position 0
+	// Min delay to get through the firewall without getting caught is:
+	// d, such that (d + l) % s[l] != 0 for all layers that have a non-zero depth
+
+	steps := make([]int, len(firewall.depths))
+	for i, depth := range firewall.depths {
+		if depth == 0 {
+			steps[i] = 0
+		} else if depth == 1 {
+			// Impossible - scanner never moves
+			panic("Scanner never moves from position " + string(i))
+		}
+
+		steps[i] = 2 * (depth - 1)
+	}
+
+	for delay := 0 ;; delay ++ {
+		caught := false
+
+		for i, steps := range steps {
+			if steps > 0 && (delay + i) % steps == 0 {
+				caught = true
+			}
+		}
+
+		if !caught {
+			return delay
+		}
+	}
 }
 
 func main() {
@@ -200,5 +233,8 @@ func main() {
 		fmt.Println("Error parsing lines", parseErr)
 	}
 
+	firewall2, _ := Parse(lines)
+
 	fmt.Println("Part 1:", TripSeverity(firewall))
+	fmt.Println("Part 2:", MinDelay(firewall2))
 }

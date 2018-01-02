@@ -127,6 +127,17 @@ func TestTripSeverity(t *testing.T) {
 	}
 }
 
+func TestMinDelay(t *testing.T) {
+	firewall := newExample()
+
+	expected := 10
+	actual := MinDelay(firewall)
+
+	if expected != actual {
+		t.Error("Wrong min delay.  Expected:", expected, "Actual:", actual)
+	}
+}
+
 func firewallsMatch(a, b *Firewall) bool {
 	return a.packetPosition == b.packetPosition &&
 		arraysMatch(a.depths, b.depths) &&
