@@ -5,36 +5,20 @@ import "testing"
 const exampleInput = "flqrgnkx"
 
 func TestMakeDisk(t *testing.T) {
-	expectedCorner := []string {
-		"##.#.#..",
-		".#.#.#.#",
-		"....#.#.",
-		"#.#.##.#",
-		".##.#...",
-		"##..#..#",
-		".#...#..",
-		"##.#.##.",
-	}
+	expectedCorner :=
+		"##.#.#..\n" +
+		".#.#.#.#\n" +
+		"....#.#.\n" +
+		"#.#.##.#\n" +
+		".##.#...\n" +
+		"##..#..#\n" +
+		".#...#..\n" +
+		"##.#.##.\n"
 
 	disk := MakeDisk(exampleInput)
+	actualCorner := disk.PrintCorner(8)
 
-	actualCorner := make([]string, len(expectedCorner))
-
-	for i, row := range (*disk)[:len(expectedCorner)] {
-		rowLength := len(expectedCorner[i])
-		actualRow := make([]byte, rowLength)
-		for j, used := range row[:rowLength] {
-			if used {
-				actualRow[j] = '#'
-			} else {
-				actualRow[j] = '.'
-			}
-		}
-
-		actualCorner[i] = string(actualRow)
-	}
-
-	if !arraysEqual(expectedCorner, actualCorner) {
+	if expectedCorner != actualCorner {
 		t.Error("Wrong value for MakeDisk", exampleInput, ".  Expected:", expectedCorner, "Actual:", actualCorner)
 	}
 }
@@ -47,6 +31,17 @@ func TestCountUsed(t *testing.T) {
 
 	if expected != actual {
 		t.Error("Wrong value for CountUsed", exampleInput, "Expected:", expected, "Actual:", actual)
+	}
+}
+
+func TestCountRegions(t *testing.T) {
+	disk := MakeDisk(exampleInput)
+
+	expected := 1242
+	actual := disk.CountRegions()
+
+	if expected != actual {
+		t.Error("Wrong value for CountRegions.  Expected:", expected, "Actual:", actual)
 	}
 }
 
