@@ -14,6 +14,12 @@ public class Day17Test {
     Day17.Buffer actualBuffer = Day17.insertTimes(3, 9);
 
     assertThat(actualBuffer).isEqualTo(new Day17.Buffer(1, new int[]{0, 9, 5, 7, 2, 4, 3, 8, 6, 1}));
+
+    assertThat(Day17.valueAfter(3, 9, 9)).isEqualTo(5);
+    assertThat(Day17.valueAfter(3, 9, 0)).isEqualTo(9);
+
+    assertThat(Day17.linkedValueAfter(3, 9, 9)).isEqualTo(5);
+    assertThat(Day17.linkedValueAfter(3, 9, 0)).isEqualTo(9);
   }
 
   @Test
@@ -27,7 +33,7 @@ public class Day17Test {
   public void stepFourElements() {
     Day17.Buffer result = FOUR.step(3);
 
-    assertThat(result).isEqualTo(new Day17.Buffer(0, FOUR.values));
+    assertThat(result).isEqualTo(new Day17.Buffer(0, new int[]{0, 2, 3, 1}));
   }
 
   @Test

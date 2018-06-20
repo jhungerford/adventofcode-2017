@@ -12,6 +12,7 @@
 
 # IntelliJ
 .idea/
+target/
 
 # Java
 *.class

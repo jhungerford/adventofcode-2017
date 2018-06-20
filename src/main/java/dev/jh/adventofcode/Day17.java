@@ -134,10 +134,99 @@ public class Day17 {
     return buffer;
   }
 
+  public static int valueAfter(int step, int times, int number) {
+    // step: 3, times: 9
+    // (0)
+    //  0 (1)
+    //  0 (2) 1
+    //  0  2 (3) 1
+    //  0  2 (4) 3  1
+    //  0 (5) 2  4  3  1
+    //  0  5  2  4  3 (6) 1
+    //  0  5 (7) 2  4  3  6  1
+    //  0  5  7  2  4  3 (8) 6  1
+    //  0 (9) 5  7  2  4  3  8  6  1
+    //
+    //  0  1  2  3  4  5  6  7  8  9 - index
+    //  0  1  1  2  2  1  5  2  6  1 - insertion
+    //  0  9  4  6  5  2  8  3  7  1 - bumped index
+    //  0  9  5  7  2  4  3  8  6  1
+
+    // Array where each element represents the index where that number was inserted
+    int[] insertions = new int[times + 1];
+    int position = 1;
+
+    for (int i = 1; i <= times; i ++) {
+      position = (position + step) % i + 1;
+      insertions[i] = position;
+
+      for (int j = 0; j < i; j ++) {
+        if (insertions[j] >= position) {
+          insertions[j] ++;
+        }
+      }
+    }
+
+    int[] results = new int[insertions.length];
+    for (int i = 0; i < results.length; i++) {
+      results[insertions[i]] = i;
+    }
+
+    int foundIndex = 0;
+    while (results[foundIndex] != number) {
+      foundIndex ++;
+    }
+
+    return results[(foundIndex + 1) % results.length];
+  }
+
+  public static class Node {
+    private Node next;
+    public final int value;
+
+    public Node(int value) {
+      this.value = value;
+      this.next = this;
+    }
+
+    /**
+     * Inserts the given value after this one, returning the inserted node.
+     *
+     * @param value Value to insert
+     */
+    public Node insert(int value) {
+      Node valueNode = new Node(value);
+
+      valueNode.next = this.next;
+      this.next = valueNode;
+
+      return valueNode;
+    }
+  }
+
+  public static int linkedValueAfter(int step, int times, int number) {
+    Node head = new Node(0);
+
+    for (int num = 1; num <= times; num ++) {
+      for (int rotate = 0; rotate < (step % num); rotate++) {
+        head = head.next;
+      }
+
+      head = head.insert(num);
+    }
+
+    while (head.value != number) {
+      head = head.next;
+    }
+
+    return head.next.value;
+  }
+
   public static void main(String[] args) {
     Buffer part1 = insertTimes(349, 2017);
     int part1Index = part1.positionOf(2017);
 
     System.out.println("Part 1: " + part1.values[part1.modPosition(part1Index + 1)]);
+    System.out.println("Part 2: " + linkedValueAfter(349, 50000000, 0));
   }
 }
