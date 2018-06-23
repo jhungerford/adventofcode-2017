@@ -187,6 +187,11 @@ public class Day19 {
     });
   }
 
+  public static int steps(ImmutableList<String> lines) {
+    char[][] maze = parse(lines);
+    return traverse(maze, 0, (state, accumulator) -> accumulator + 1);
+  }
+
   public static String path(ImmutableList<String> lines) {
     char[][] maze = parse(lines);
 
@@ -235,5 +240,6 @@ public class Day19 {
     System.out.println(path(lines));
 
     System.out.println("Part 1: " + letters(lines));
+    System.out.println("Part 2: " + steps(lines));
   }
 }

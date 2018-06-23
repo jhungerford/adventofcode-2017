@@ -18,8 +18,13 @@ public class Day19Test {
   );
 
   @Test
-  public void example() {
+  public void lettersExample() {
     assertThat(Day19.letters(EXAMPLE)).isEqualTo("ABCDEF");
+  }
+
+  @Test
+  public void stepsExample() {
+    assertThat(Day19.steps(EXAMPLE)).isEqualTo(38);
   }
 
   @Test
