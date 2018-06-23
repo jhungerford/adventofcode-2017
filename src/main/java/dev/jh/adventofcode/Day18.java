@@ -1,6 +1,10 @@
 package dev.jh.adventofcode;
 
+import static dev.jh.adventofcode.Day18.Mode.SEND;
+import static dev.jh.adventofcode.Day18.Mode.SOUND;
+
 import com.google.common.base.Charsets;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
@@ -8,7 +12,8 @@ import com.google.common.io.Resources;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.function.Predicate;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,29 +27,51 @@ public class Day18 {
     /** Frequency of the last sound recovered */
     public final long recoveredFrequency;
     /** Program counter */
-    public final long programCounter;
+    public final int programCounter;
+    /** Queue of values being sent to the other program */
+    public final Queue<Long> inQueue;
+    /** Queue of values received from the other program */
+    public final Queue<Long> outQueue;
 
     /**
      * Constructs a new state, with all registers initialized to 0, no sound played,
      * and the program counter at the beginning of the instructions.
      */
     public State() {
-      this.registers = ImmutableMap.of();
-      this.playedFrequency = 0;
-      this.recoveredFrequency = 0;
-      this.programCounter = 0;
+      this(
+          ImmutableMap.of(),
+          0, 0, 0,
+          null, null
+      );
+    }
+
+    /**
+     * Constructs a new state, with the given in queue and out queue.
+     * @param inQueue
+     * @param outQueue
+     */
+    public State(Queue<Long> inQueue, Queue<Long> outQueue) {
+      this(
+          ImmutableMap.of(),
+          0, 0, 0,
+          inQueue, outQueue
+      );
     }
 
     private State(
         ImmutableMap<Character, Long> registers,
         long playedFrequency,
         long recoveredFrequency,
-        long programCounter
+        int programCounter,
+        Queue<Long> inQueue,
+        Queue<Long> outQueue
     ) {
       this.registers = registers;
       this.playedFrequency = playedFrequency;
       this.recoveredFrequency = recoveredFrequency;
       this.programCounter = programCounter;
+      this.inQueue = inQueue;
+      this.outQueue = outQueue;
     }
 
     /**
@@ -64,7 +91,9 @@ public class Day18 {
               .build(),
           playedFrequency,
           recoveredFrequency,
-          programCounter
+          programCounter,
+          inQueue,
+          outQueue
       );
     }
 
@@ -85,7 +114,7 @@ public class Day18 {
      * @return New state playing the sound
      */
     public State playSound(long value) {
-      return new State(registers, value, recoveredFrequency, programCounter);
+      return new State(registers, value, recoveredFrequency, programCounter, inQueue, outQueue);
     }
 
     /**
@@ -98,7 +127,9 @@ public class Day18 {
           registers,
           playedFrequency,
           playedFrequency,
-          programCounter
+          programCounter,
+          inQueue,
+          outQueue
       );
     }
 
@@ -117,13 +148,35 @@ public class Day18 {
      * @param value Value to set the program counter to
      * @return New state with the program counter set to the given value.
      */
-    public State setProgramCounter(long value) {
+    public State setProgramCounter(int value) {
       return new State(
           registers,
           playedFrequency,
           recoveredFrequency,
-          value
+          value,
+          inQueue,
+          outQueue
       );
+    }
+
+    public boolean isRunning(ImmutableList<Instruction> instructions) {
+      return programCounter >= 0 && programCounter < instructions.size();
+    }
+
+    public boolean isBlocked(ImmutableList<Instruction> instructions) {
+      return instructions.get(programCounter) instanceof ReceiveInstruction && inQueue.isEmpty();
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("registers", registers)
+          .add("playedFrequency", playedFrequency)
+          .add("recoveredFrequency", recoveredFrequency)
+          .add("programCounter", programCounter)
+          .add("inQueue", inQueue)
+          .add("outQueue", outQueue)
+          .toString();
     }
   }
 
@@ -172,6 +225,11 @@ public class Day18 {
 
       return number;
     }
+
+    @Override
+    public String toString() {
+      return isRegister ? Character.toString(register) : Integer.toString(number);
+    }
   }
 
   public interface Instruction {
@@ -200,6 +258,11 @@ public class Day18 {
           .playSound(x.get(state))
           .incrementProgramCounter();
     }
+
+    @Override
+    public String toString() {
+      return "snd " + x;
+    }
   }
 
   /**
@@ -219,6 +282,11 @@ public class Day18 {
       return state
           .setRegister(x, y.get(state))
           .incrementProgramCounter();
+    }
+
+    @Override
+    public String toString() {
+      return "set " + x + ' ' + y;
     }
   }
 
@@ -240,6 +308,11 @@ public class Day18 {
           .setRegister(x, state.getRegister(x) + y.get(state))
           .incrementProgramCounter();
     }
+
+    @Override
+    public String toString() {
+      return "add " + x + ' ' + y;
+    }
   }
 
   /**
@@ -259,6 +332,11 @@ public class Day18 {
       return state
           .setRegister(x, state.getRegister(x) * y.get(state))
           .incrementProgramCounter();
+    }
+
+    @Override
+    public String toString() {
+      return "mul " + x + ' ' + y;
     }
   }
 
@@ -286,6 +364,11 @@ public class Day18 {
           .setRegister(x, state.getRegister(x) % value)
           .incrementProgramCounter();
     }
+
+    @Override
+    public String toString() {
+      return "mod " + x + ' ' + y;
+    }
   }
 
   /**
@@ -310,6 +393,11 @@ public class Day18 {
       return state
           .incrementProgramCounter();
     }
+
+    @Override
+    public String toString() {
+      return "rcv " + x;
+    }
   }
 
   /**
@@ -318,21 +406,71 @@ public class Day18 {
    * and so on.)
    */
   public static class JgzInstruction implements Instruction {
-    private final char x;
+    private final RegisterOrNumber x;
     private final RegisterOrNumber y;
 
-    public JgzInstruction(char x, RegisterOrNumber y) {
+    public JgzInstruction(RegisterOrNumber x, RegisterOrNumber y) {
       this.x = x;
       this.y = y;
     }
 
     @Override
     public State apply(State state) {
-      if (state.getRegister(x) > 0) {
-        return state.setProgramCounter(state.programCounter + y.get(state));
+      if (x.get(state) > 0) {
+        return state.setProgramCounter((int) (state.programCounter + y.get(state)));
       }
 
       return state.incrementProgramCounter();
+    }
+
+    @Override
+    public String toString() {
+      return "jgz " + x + ' ' + y;
+    }
+  }
+
+  /**
+   * snd X Sends the value of register x to the other program.
+   */
+  public static class SendInstruction implements Instruction {
+    private final char x;
+
+    public SendInstruction(char x) {
+      this.x = x;
+    }
+
+    @Override
+    public State apply(State state) {
+      state.outQueue.add(state.getRegister(x));
+      return state.incrementProgramCounter();
+    }
+
+    @Override
+    public String toString() {
+      return "snd " + x;
+    }
+  }
+
+  /**
+   * rcv X receives the value from the other program and stores it in register X.
+   */
+  public static class ReceiveInstruction implements Instruction {
+    private final char x;
+
+    public ReceiveInstruction(char x) {
+      this.x = x;
+    }
+
+    @Override
+    public State apply(State state) {
+      return state
+          .setRegister(x, state.inQueue.remove())
+          .incrementProgramCounter();
+    }
+
+    @Override
+    public String toString() {
+      return "rcv " + x;
     }
   }
 
@@ -342,17 +480,59 @@ public class Day18 {
    * @param program Program to run
    * @return State of the machine after running the program
    */
-  public static State run(ImmutableList<String> program, Predicate<State> runPredicate) {
+  public static State runSound(ImmutableList<String> program) {
     State state = new State();
     ImmutableList<Instruction> instructions = program.stream()
-        .map(Day18::parseInstruction)
+        .map(instruction -> Day18.parseInstruction(instruction, SOUND))
         .collect(ImmutableList.toImmutableList());
 
-    while (state.programCounter >= 0 && state.programCounter < instructions.size() && runPredicate.test(state)) {
-      state = instructions.get((int) state.programCounter).apply(state);
+    while (state.isRunning(instructions) && state.recoveredFrequency == 0) {
+      state = instructions.get(state.programCounter).apply(state);
     }
 
     return state;
+  }
+
+  public static int runSend(ImmutableList<String> program) {
+    ImmutableList<Instruction> instructions = program.stream()
+        .map(instruction -> Day18.parseInstruction(instruction, SEND))
+        .collect(ImmutableList.toImmutableList());
+
+    Queue<Long> queue0 = new ArrayDeque<>();
+    Queue<Long> queue1 = new ArrayDeque<>();
+
+    State state0 = new State(queue0, queue1)
+        .setRegister('p', 0);
+    State state1 = new State(queue1, queue0)
+        .setRegister('p', 1);
+
+    int program1Sends = 0;
+
+    // Run each program until it's about to block, then switch to the other program.
+    // Finish when each program terminates normally, or both programs are blocked.
+    while ((state0.isRunning(instructions) && !state0.isBlocked(instructions))
+        || (state0.isRunning(instructions) && !state1.isBlocked(instructions))) {
+
+      while (state0.isRunning(instructions) && !state0.isBlocked(instructions)) {
+        state0 = instructions.get(state0.programCounter).apply(state0);
+      }
+
+      while (state1.isRunning(instructions) && !state1.isBlocked(instructions)) {
+        Instruction instruction = instructions.get(state1.programCounter);
+
+        if (instruction instanceof SendInstruction) {
+          program1Sends++;
+        }
+
+        state1 = instruction.apply(state1);
+      }
+    }
+
+    return program1Sends;
+  }
+
+  public enum Mode {
+    SOUND, SEND
   }
 
   private static final Pattern INSTRUCTION_PATTERN = Pattern.compile("^([a-z]{3}) ([a-z]|(?:-?\\d+)) ?([a-z]|(?:-?\\d+))?$");
@@ -363,7 +543,7 @@ public class Day18 {
    * @param instruction Instruction to parse
    * @return Parsed instruction
    */
-  private static Instruction parseInstruction(String instruction) {
+  private static Instruction parseInstruction(String instruction, Mode mode) {
     Matcher matcher = INSTRUCTION_PATTERN.matcher(instruction);
     if (!matcher.matches()) {
       throw new IllegalArgumentException("Invalid instruction " + instruction);
@@ -372,7 +552,11 @@ public class Day18 {
     String command = matcher.group(1);
     switch(command) {
       case "snd":
-        return new SndInstruction(new RegisterOrNumber(matcher.group(2)));
+        if (mode == SOUND) {
+          return new SndInstruction(new RegisterOrNumber(matcher.group(2)));
+        } else {
+          return new SendInstruction(matcher.group(2).charAt(0));
+        }
       case "set":
         return new SetInstruction(matcher.group(2).charAt(0), new RegisterOrNumber(matcher.group(3)));
       case "add":
@@ -382,9 +566,13 @@ public class Day18 {
       case "mod":
         return new ModInstruction(matcher.group(2).charAt(0), new RegisterOrNumber(matcher.group(3)));
       case "rcv":
-        return new RcvInstruction(matcher.group(2).charAt(0));
+        if (mode == SOUND) {
+          return new RcvInstruction(matcher.group(2).charAt(0));
+        } else {
+          return new ReceiveInstruction(matcher.group(2).charAt(0));
+        }
       case "jgz":
-        return new JgzInstruction(matcher.group(2).charAt(0), new RegisterOrNumber(matcher.group(3)));
+        return new JgzInstruction(new RegisterOrNumber(matcher.group(2)), new RegisterOrNumber(matcher.group(3)));
       default:
         throw new IllegalArgumentException("Invalid instruction " + instruction);
     }
@@ -394,7 +582,8 @@ public class Day18 {
     File file = new File(Resources.getResource("day18.txt").getFile());
     ImmutableList<String> program = ImmutableList.copyOf(Files.readLines(file, Charsets.UTF_8));
 
-    Day18.State part1State = Day18.run(program, state -> state.recoveredFrequency == 0);
+    Day18.State part1State = Day18.runSound(program);
     System.out.println("Part 1: " + part1State.recoveredFrequency);
+    System.out.println("Part 2: " + runSend(program));
   }
 }

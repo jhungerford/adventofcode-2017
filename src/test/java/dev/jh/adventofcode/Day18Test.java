@@ -28,8 +28,23 @@ public class Day18Test {
         "jgz a -2"
     );
 
-    Day18.State actualState = Day18.run(program, state -> state.recoveredFrequency == 0);
+    Day18.State actualState = Day18.runSound(program);
     assertThat(actualState.recoveredFrequency).isEqualTo(4);
+  }
+
+  @Test
+  public void sendExample() {
+    ImmutableList<String> program = ImmutableList.of(
+        "snd 1",
+        "snd 2",
+        "snd p",
+        "rcv a",
+        "rcv b",
+        "rcv c",
+        "rcv d"
+    );
+
+    assertThat(Day18.runSend(program)).isEqualTo(3);
   }
 
   @Test
@@ -126,10 +141,10 @@ public class Day18Test {
 
   @Test
   public void jgzInstruction() {
-    Day18.Instruction jgzA = new Day18.JgzInstruction('a', new Day18.RegisterOrNumber("2"));
-    Day18.Instruction jgzB = new Day18.JgzInstruction('b', new Day18.RegisterOrNumber("-2"));
-    Day18.Instruction jgzC = new Day18.JgzInstruction('c', new Day18.RegisterOrNumber("2"));
-    Day18.Instruction jgzE = new Day18.JgzInstruction('e', new Day18.RegisterOrNumber("2"));
+    Day18.Instruction jgzA = new Day18.JgzInstruction(new Day18.RegisterOrNumber("a"), new Day18.RegisterOrNumber("2"));
+    Day18.Instruction jgzB = new Day18.JgzInstruction(new Day18.RegisterOrNumber("b"), new Day18.RegisterOrNumber("-2"));
+    Day18.Instruction jgzC = new Day18.JgzInstruction(new Day18.RegisterOrNumber("c"), new Day18.RegisterOrNumber("2"));
+    Day18.Instruction jgzE = new Day18.JgzInstruction(new Day18.RegisterOrNumber("e"), new Day18.RegisterOrNumber("2"));
 
     assertThat(jgzA.apply(SAMPLE_STATE).programCounter).isEqualTo(2);
     assertThat(jgzB.apply(SAMPLE_STATE).programCounter).isEqualTo(-2);
