@@ -10,13 +10,17 @@ import com.google.common.io.Resources;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -26,12 +30,12 @@ public class Day20 {
 
   public static final Vector3D ORIGIN = new Vector3D(0, 0, 0);
 
-  public static class Vector3D {
-    public final int x;
-    public final int y;
-    public final int z;
+  public static class Vector3D implements Comparable<Vector3D> {
+    public final long x;
+    public final long y;
+    public final long z;
 
-    public Vector3D(int x, int y, int z) {
+    public Vector3D(long x, long y, long z) {
       this.x = x;
       this.y = y;
       this.z = z;
@@ -45,14 +49,29 @@ public class Day20 {
       );
     }
 
-    public int distance(Vector3D other) {
+    public long distance(Vector3D other) {
       return Math.abs(x - other.x)
           + Math.abs(y - other.y)
           + Math.abs(z - other.z);
     }
 
-    public int magnitude() {
+    public long magnitude() {
       return Math.abs(x) + Math.abs(y) + Math.abs(z);
+    }
+
+    @Override
+    public int compareTo(Vector3D other) {
+      int compare = Long.compare(this.x, other.x);
+      if (compare != 0) {
+        return compare;
+      }
+
+      compare = Long.compare(this.y, other.y);
+      if (compare != 0) {
+        return compare;
+      }
+
+      return Long.compare(this.z, other.z);
     }
 
     @Override
@@ -206,15 +225,57 @@ public class Day20 {
     ));
   }
 
-  private static ImmutableSet<Particle> lowest(ImmutableSet<Particle> particles, ToIntFunction<Particle> mapper) {
-    int value = particles.stream()
-        .mapToInt(mapper)
+  private static ImmutableSet<Particle> lowest(ImmutableSet<Particle> particles, ToLongFunction<Particle> mapper) {
+    long value = particles.stream()
+        .mapToLong(mapper)
         .min()
-        .getAsInt();
+        .getAsLong();
 
     return particles.stream()
-        .filter(particle -> mapper.applyAsInt(particle) == value)
+        .filter(particle -> mapper.applyAsLong(particle) == value)
         .collect(ImmutableSet.toImmutableSet());
+  }
+
+  public static int afterCollisions(ImmutableSet<Particle> particles) {
+    for (int i = 0; i < 10000; i ++) {
+      particles = particles.stream()
+          // Group by position
+          .collect(Collectors.groupingBy(particle -> particle.position))
+          .values().stream()
+          // Eliminate particles that collided
+          .filter(positionParticles -> positionParticles.size() == 1)
+          .flatMap(Collection::stream)
+          // Update the remaining particle positions
+          .map(Particle::update)
+          .collect(ImmutableSet.toImmutableSet());
+    }
+
+    return particles.size();
+  }
+
+  private static boolean movingApart(ImmutableSet<Particle> particles) {
+    // Particles are all moving apart when the order of their accelerations, velocities,
+    // and distance from the origin are all in the same order.
+
+    ImmutableList<Particle> positions = particles.stream()
+        .sorted(Comparator
+            .comparing((Particle particle) -> particle.position.distance(ORIGIN))
+            .thenComparingInt(particle -> particle.id))
+        .collect(ImmutableList.toImmutableList());
+
+    ImmutableList<Particle> velocities = particles.stream()
+        .sorted(Comparator
+            .comparing((Particle particle) -> particle.velocity.magnitude())
+            .thenComparingInt(particle -> particle.id))
+        .collect(ImmutableList.toImmutableList());
+
+    ImmutableList<Particle> accelerations = particles.stream()
+        .sorted(Comparator
+            .comparing((Particle particle) -> particle.acceleration.magnitude())
+            .thenComparingInt(particle -> particle.id))
+        .collect(ImmutableList.toImmutableList());
+
+    return positions.equals(velocities) && velocities.equals(accelerations);
   }
 
   public static void main(String[] args) throws IOException {
@@ -229,5 +290,6 @@ public class Day20 {
     ImmutableSet<Particle> particles = particlesBuilder.build();
 
     System.out.println("Part 1: " + closestParticle(particles));
+    System.out.println("Part 2: " + afterCollisions(particles));
   }
 }

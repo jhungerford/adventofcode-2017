@@ -61,4 +61,16 @@ public class Day20Test {
 
     assertThat(Day20.closestParticle(particles)).isEqualTo(2);
   }
+
+  @Test
+  public void afterCollisions() {
+    ImmutableSet<Day20.Particle> particles = ImmutableSet.of(
+        Day20.Particle.fromString(0, "p=<-6,0,0>, v=<3,0,0>, a=<0,0,0>"),
+        Day20.Particle.fromString(1, "p=<-4,0,0>, v=<2,0,0>, a=<0,0,0>"),
+        Day20.Particle.fromString(2, "p=<-2,0,0>, v=<1,0,0>, a=<0,0,0>"),
+        Day20.Particle.fromString(3, "p=<3,0,0>, v=<1,0,0>, a=<0,0,0>")
+    );
+
+    assertThat(Day20.afterCollisions(particles)).isEqualTo(1);
+  }
 }
