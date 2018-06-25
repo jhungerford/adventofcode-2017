@@ -213,5 +213,6 @@ public class Day21 {
         .collect(ImmutableList.toImmutableList());
 
     System.out.println("Part 1: " + pixelsOn(rules, 5));
+    System.out.println("Part 2: " + pixelsOn(rules, 18));
   }
 }
