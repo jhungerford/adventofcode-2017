@@ -327,7 +327,7 @@ public class Day22 {
     File file = new File(Resources.getResource("day22.txt").getFile());
     ImmutableList<String> lines = ImmutableList.copyOf(Files.readLines(file, Charsets.UTF_8));
     Grid grid = Grid.fromLines(lines);
-git status
+
     System.out.println("Part 1: " + countInfections(grid, 10000));
     System.out.println("Part 2: " + countEvolvedInfections(grid, 10000000));
   }
