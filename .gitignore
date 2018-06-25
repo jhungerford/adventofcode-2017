@@ -13,6 +13,7 @@
 # IntelliJ
 .idea/
 target/
+*.iml
 
 # Java
 *.class
