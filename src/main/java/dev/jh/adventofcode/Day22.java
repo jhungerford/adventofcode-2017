@@ -1,10 +1,5 @@
 package dev.jh.adventofcode;
 
-import static dev.jh.adventofcode.Day22.Direction.DOWN;
-import static dev.jh.adventofcode.Day22.Direction.LEFT;
-import static dev.jh.adventofcode.Day22.Direction.RIGHT;
-import static dev.jh.adventofcode.Day22.Direction.UP;
-
 import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -15,8 +10,12 @@ import com.google.common.io.Resources;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.UnaryOperator;
+
+import static dev.jh.adventofcode.Day22.Direction.*;
 
 public class Day22 {
 
@@ -94,6 +93,13 @@ public class Day22 {
       RIGHT, DOWN
   );
 
+  private static final ImmutableMap<Direction, Direction> REVERSE_DIRECTIONS = ImmutableMap.of(
+          UP, DOWN,
+          DOWN, UP,
+          LEFT, RIGHT,
+          RIGHT, LEFT
+  );
+
   public enum Direction {
     UP(node -> new Node(node.row - 1, node.column)),
     DOWN(node -> new Node(node.row + 1, node.column)),
@@ -116,6 +122,10 @@ public class Day22 {
     public Virus(Node position, Direction direction) {
       this.position = position;
       this.direction = direction;
+    }
+
+    public Virus move(Direction newDirection) {
+      return new Virus(newDirection.step.apply(position), newDirection);
     }
 
     @Override
@@ -176,7 +186,7 @@ public class Day22 {
       }
 
       // 3. Virus moves forward one step in the direction it's facing
-      return new State(new Grid(newInfected), new Virus(newDirection.step.apply(virus.position), newDirection));
+      return new State(new Grid(newInfected), virus.move(newDirection));
     }
 
     public boolean isInfected() {
@@ -210,6 +220,80 @@ public class Day22 {
     }
   }
 
+  public static class EvolvedState {
+    private final Set<Node> weakened;
+    private final Set<Node> infected;
+    private final Set<Node> flagged;
+    private Virus virus;
+
+
+    public EvolvedState() {
+      this.weakened = new HashSet<>();
+      this.infected = new HashSet<>();
+      this.flagged = new HashSet<>();
+      this.virus = Virus.INITIAL;
+    }
+
+    public static EvolvedState fromGrid(Grid grid) {
+      EvolvedState state = new EvolvedState();
+      state.infected.addAll(grid.infectedNodes);
+
+      return state;
+    }
+
+    /**
+     * Performs one burst, modifying this EvolvedState for performance.
+     *
+     * @return This modified evolved state.
+     */
+    public EvolvedState stepModify() {
+      // 1. Turn.  Clean -> left, Weakened -> don't turn, Infected -> right, Flagged -> reverse
+      Direction newDirection;
+      if (isInfected()) {
+        newDirection = RIGHT_DIRECTIONS.get(virus.direction);
+      } else if (isFlagged()) {
+        newDirection = REVERSE_DIRECTIONS.get(virus.direction);
+      } else if (isWeakened()) {
+        newDirection = virus.direction;
+      } else {
+        newDirection = LEFT_DIRECTIONS.get(virus.direction);
+      }
+
+      // 2. Modify node.  Clean -> Weakened, Weakened -> Infected, Infected -> Flagged, Flagged -> Clean
+      if (isWeakened()) { // Weakened -> Infected
+        weakened.remove(virus.position);
+        infected.add(virus.position);
+
+      } else if (isInfected()) { // Infected -> Flagged
+        infected.remove(virus.position);
+        flagged.add(virus.position);
+
+      } else if (isFlagged()) { // Flagged -> Clean
+        flagged.remove(virus.position);
+
+      } else { // Clean -> Weakened
+        weakened.add(virus.position);
+      }
+
+      // 3. Move forward one node
+      virus = virus.move(newDirection);
+
+      return this;
+    }
+
+    public boolean isWeakened() {
+      return weakened.contains(virus.position);
+    }
+
+    public boolean isInfected() {
+      return infected.contains(virus.position);
+    }
+
+    public boolean isFlagged() {
+      return flagged.contains(virus.position);
+    }
+  }
+
   public static int countInfections(Grid grid, int bursts) {
     State state = new State(grid, Virus.INITIAL);
     int numInfections = 0;
@@ -224,11 +308,27 @@ public class Day22 {
     return numInfections;
   }
 
+  public static int countEvolvedInfections(Grid grid, int bursts) {
+    EvolvedState state = EvolvedState.fromGrid(grid);
+
+    int numInfections = 0;
+    for (int i = 0; i < bursts; i ++) {
+      if (state.isWeakened()) {
+        numInfections ++;
+      }
+
+      state = state.stepModify();
+    }
+
+    return numInfections;
+  }
+
   public static void main(String[] args) throws IOException {
     File file = new File(Resources.getResource("day22.txt").getFile());
     ImmutableList<String> lines = ImmutableList.copyOf(Files.readLines(file, Charsets.UTF_8));
     Grid grid = Grid.fromLines(lines);
-
+git status
     System.out.println("Part 1: " + countInfections(grid, 10000));
+    System.out.println("Part 2: " + countEvolvedInfections(grid, 10000000));
   }
 }

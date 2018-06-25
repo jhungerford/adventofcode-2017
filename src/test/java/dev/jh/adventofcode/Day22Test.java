@@ -50,4 +50,26 @@ public class Day22Test {
 
     assertThat(Day22.countInfections(Day22.Grid.fromLines(lines), 10000)).isEqualTo(5587);
   }
+
+  @Test
+  public void evolvedExample100() {
+    ImmutableList<String> lines = ImmutableList.of(
+            "..#",
+            "#..",
+            "..."
+    );
+
+    assertThat(Day22.countEvolvedInfections(Day22.Grid.fromLines(lines), 100)).isEqualTo(26);
+  }
+
+  @Test
+  public void evolvedExample10000000() {
+    ImmutableList<String> lines = ImmutableList.of(
+            "..#",
+            "#..",
+            "..."
+    );
+
+    assertThat(Day22.countEvolvedInfections(Day22.Grid.fromLines(lines), 10000000)).isEqualTo(2511944);
+  }
 }
