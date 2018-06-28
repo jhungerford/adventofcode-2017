@@ -9,9 +9,8 @@ import com.google.common.io.Resources;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.ToIntFunction;
 
 public class Day24 {
   public static class Component {
@@ -126,11 +125,21 @@ public class Day24 {
         .build();
   }
 
-  public static int strongestBridge(ImmutableList<Component> components) {
-    return validBridges(components).stream()
+  public static int strongestBridge(ImmutableSet<ImmutableList<Component>> bridges) {
+    return bridges.stream()
         .mapToInt(Day24::bridgeStrength)
         .max()
-        .orElseThrow(() -> new IllegalArgumentException("No valid bridges in the given components"));
+        .orElseThrow(() -> new IllegalArgumentException("No valid bridges."));
+  }
+
+  public static int longestBridge(ImmutableSet<ImmutableList<Component>> bridges) {
+    return bridges.stream()
+        .max(Comparator
+            .comparingInt((ToIntFunction<ImmutableList<Component>>) AbstractCollection::size)
+            .thenComparingInt(Day24::bridgeStrength)
+        )
+        .map(Day24::bridgeStrength)
+        .orElseThrow(() -> new IllegalArgumentException("No valid bridges."));
   }
 
   public static void main(String[] args) throws IOException {
@@ -139,6 +148,9 @@ public class Day24 {
         .map(Component::fromString)
         .collect(ImmutableList.toImmutableList());
 
-    System.out.println("Part 1: " + strongestBridge(components));
+    ImmutableSet<ImmutableList<Component>> bridges = validBridges(components);
+
+    System.out.println("Part 1: " + strongestBridge(bridges));
+    System.out.println("Part 2: " + longestBridge(bridges));
   }
 }

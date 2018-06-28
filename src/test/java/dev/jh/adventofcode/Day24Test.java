@@ -68,7 +68,12 @@ public class Day24Test {
 
   @Test
   public void strongestExample() {
-    assertThat(Day24.strongestBridge(EXAMPLE_COMPONENTS)).isEqualTo(31);
+    assertThat(Day24.strongestBridge(Day24.validBridges(EXAMPLE_COMPONENTS))).isEqualTo(31);
+  }
+
+  @Test
+  public void longestExample() {
+    assertThat(Day24.longestBridge(Day24.validBridges(EXAMPLE_COMPONENTS))).isEqualTo(19);
   }
 
   @Test
