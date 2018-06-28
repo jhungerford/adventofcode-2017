@@ -1,9 +1,10 @@
 package dev.jh.adventofcode;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 public class Day25 {
@@ -21,15 +22,7 @@ public class Day25 {
   }
 
   public static class Tape {
-    private final ImmutableSet<Integer> on;
-
-    public Tape() {
-      this(ImmutableSet.of());
-    }
-
-    private Tape(ImmutableSet<Integer> on) {
-      this.on = on;
-    }
+    private final Set<Integer> on = new HashSet<>();
 
     public boolean get(int cursor) {
       return on.contains(cursor);
@@ -37,16 +30,12 @@ public class Day25 {
 
     public Tape write(int cursor, boolean value) {
       if (value) {
-        return new Tape(ImmutableSet.<Integer>builder()
-            .addAll(on)
-            .add(cursor)
-            .build()
-        );
+        on.add(cursor);
       } else {
-        return new Tape(on.stream()
-            .filter(onCursor -> onCursor != cursor)
-            .collect(ImmutableSet.toImmutableSet()));
+        on.remove(cursor);
       }
+
+      return this;
     }
 
     public int checksum() {
@@ -169,10 +158,10 @@ public class Day25 {
             .put(new StateValue('f', true), machine -> new Machine(
                 machine.tape.write(machine.cursor, false),
                 machine.cursor - 1,
-                'a'
+                'e'
             ))
             .build();
 
-    System.out.println("Part 1: " + runSteps(12425180, initial, instructions));
+    System.out.println("Part 1: " + runSteps(12425180, initial, instructions).tape.checksum());
   }
 }
